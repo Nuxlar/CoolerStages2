@@ -1,9 +1,13 @@
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace CoolerStages
 {
     public class Stage1
     {
+        private static Texture2D terrainSandTex = Addressables.LoadAssetAsync<Texture2D>("RoR2/DLC2/lakes/Assets/texTLTerrainSand.tga").WaitForCompletion();
+        private static Texture2D tlDirtTex = Addressables.LoadAssetAsync<Texture2D>("RoR2/DLC2/lakes/Assets/texTLTerrainDirt.tga").WaitForCompletion();
+
         public static void Falls(Material terrainMat, Material detailMat, Material detailMat2, Material detailMat3, Color32 color)
         {
             if (terrainMat && detailMat && detailMat2 && detailMat3)

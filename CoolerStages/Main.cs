@@ -19,12 +19,23 @@ namespace CoolerStages
     public const string PluginGUID = PluginAuthor + "." + PluginName;
     public const string PluginAuthor = "Nuxlar";
     public const string PluginName = "CoolerStages";
-    public const string PluginVersion = "1.0.0";
+    public const string PluginVersion = "2.0.0";
 
     internal static Main Instance { get; private set; }
     public static string PluginDirectory { get; private set; }
 
     private System.Random rng;
+
+    private static readonly Material[] solusTheme = [];
+    // Iron Alluvium matIADrillMachineLowEm matIAIron matIAProps matIAPipes matIATerrain
+    // texIALandscapeWallDiffuse _RedChannelSideTex
+    // _GreenChannelTex texRCConcreteTopDiffuse
+    // Repurposed Crater matRCMetalTrim01 matRCPipes03
+    // Pretender's Presipice matPPCablesEmissive matPPShipDebrisSnow matPPSolusSpheresPanels matPPTerrain matPPTree
+    // Conduit Canyon matCCTerrain_REDROCK matCCMetal
+    // Solutional Haunt matSHTerrain matSHMetal01A matSHMetalTEMP matSHMetal matSHConcreteWall matSHConcreteFloor
+    // Computational Exchange matCEVoxelPath matCEVoxelObject 
+    // Prime Meridian matPMTerrainPlayZone matPMTerrainPlayZoneWall matPMGold matPMTerrainPlayZoneDark
     private static readonly Material nightTerrainMat = Addressables.LoadAssetAsync<Material>("RoR2/Base/wispgraveyard/matWPTerrain.mat").WaitForCompletion();
     private static readonly Material nightTerrainMat2 = Addressables.LoadAssetAsync<Material>("RoR2/Base/wispgraveyard/matWPTerrainRocky.mat").WaitForCompletion();
     private static readonly Material nightDetailMat = Addressables.LoadAssetAsync<Material>("RoR2/Base/wispgraveyard/matTempleObelisk.mat").WaitForCompletion();
@@ -86,6 +97,11 @@ namespace CoolerStages
     private static readonly Material skybox13 = Addressables.LoadAssetAsync<Material>("RoR2/DLC1/voidstage/matVoidStageSkyboxSphere, Scrolling Caustics.mat").WaitForCompletion();
     private static readonly Material skybox14 = Addressables.LoadAssetAsync<Material>("RoR2/DLC1/ancientloft/matSkyboxAncientLoft.mat").WaitForCompletion();
 
+    private static Material terrainMatTesting;
+    private static Material detailMatTesting;
+    private static Material detailMat2Testing;
+    private static Material detailMat3Testing;
+
     private static readonly List<Material> skyboxMats = new List<Material>()
     {
       skybox1,
@@ -97,25 +113,26 @@ namespace CoolerStages
       skybox13,
       skybox14,
     };
+    /*
+        private static readonly List<Material[]> themeMaterials1 = new List<Material[]> {
+          new Material[] { verdantTerrainMat, verdantDetailMat, verdantDetailMat2, verdantDetailMat3},
+          new Material[] { smSimTerrainMat, smSimDetailMat, smSimDetailMat2, smSimtDetailMat3},
+          new Material[] {danTerrain, danDetail, danDetail2, danDetail3 },
+          new Material[] { ruinTerrain, ruinDetail, ruinDetail2, ruinDetail3 },
+          new Material[] {dcSimTerrainMat, dcSimDetailMat, dcSimDetailMat2, dcSimDetailMat3 },
+          new Material[] {gpSimTerrainMat, gpSimDetailMat, gpSimDetailMat2, gpSimDetailMat3 },
+          new Material[] {gooSimTerrainMat, gooSimDetailMat, gooSimDetailMat2, gooSimDetailMat3 },
+          new Material[] {moonTerrainMat, moonDetailMat, moonDetailMat2, moonDetailMat3 },
+          new Material[] {bazaarTerrainMat, bazaarDetailMat, bazaarDetailMat2, bazaarDetailMat3 },
+        };
 
-    private static readonly List<Material[]> themeMaterials1 = new List<Material[]> {
-      new Material[] { verdantTerrainMat, verdantDetailMat, verdantDetailMat2, verdantDetailMat3},
-      new Material[] { smSimTerrainMat, smSimDetailMat, smSimDetailMat2, smSimtDetailMat3},
-      new Material[] {danTerrain, danDetail, danDetail2, danDetail3 },
-      new Material[] { ruinTerrain, ruinDetail, ruinDetail2, ruinDetail3 },
-      new Material[] {dcSimTerrainMat, dcSimDetailMat, dcSimDetailMat2, dcSimDetailMat3 },
-      new Material[] {gpSimTerrainMat, gpSimDetailMat, gpSimDetailMat2, gpSimDetailMat3 },
-      new Material[] {gooSimTerrainMat, gooSimDetailMat, gooSimDetailMat2, gooSimDetailMat3 },
-      new Material[] {moonTerrainMat, moonDetailMat, moonDetailMat2, moonDetailMat3 },
-      new Material[] {bazaarTerrainMat, bazaarDetailMat, bazaarDetailMat2, bazaarDetailMat3 },
-    };
-
-    private static readonly List<Material[]> themeMaterials2 = new List<Material[]> {
-      new Material[] {verdantTerrainMat, verdantDetailMat, verdantDetailMat2, verdantDetailMat3 },
-      new Material[] {danTerrain, danDetail, danDetail2, danDetail3 },
-      new Material[] {ruinTerrain, ruinDetail, ruinDetail2, ruinDetail3 },
-      new Material[] {dcSimTerrainMat, dcSimDetailMat, dcSimDetailMat2, dcSimDetailMat3 }
-    };
+        private static readonly List<Material[]> themeMaterials2 = new List<Material[]> {
+          new Material[] {verdantTerrainMat, verdantDetailMat, verdantDetailMat2, verdantDetailMat3 },
+          new Material[] {danTerrain, danDetail, danDetail2, danDetail3 },
+          new Material[] {ruinTerrain, ruinDetail, ruinDetail2, ruinDetail3 },
+          new Material[] {dcSimTerrainMat, dcSimDetailMat, dcSimDetailMat2, dcSimDetailMat3 }
+        };
+    */
 
     private static readonly string[] whitelistedMaps = new string[] {
       "lakes",
@@ -179,7 +196,7 @@ namespace CoolerStages
       Stopwatch stopwatch = Stopwatch.StartNew();
 
       Log.Init(Logger);
-      // LoadAssets();
+      LoadAssets();
 
       rng = new System.Random();
 
@@ -316,6 +333,14 @@ namespace CoolerStages
       SceneInfo currentScene = SceneInfo.instance;
       if (currentScene && whitelistedMaps.Contains(sceneName))
       {
+        var themeMaterials1 = new List<Material[]>
+{
+    new Material[] {terrainMatTesting, detailMatTesting, detailMat2Testing, detailMat3Testing}
+};
+        var themeMaterials2 = new List<Material[]>
+{
+    new Material[] {terrainMatTesting, detailMatTesting, detailMat2Testing, detailMat3Testing}
+};
         Log.Warning("In whitelisted Map");
         int idx5 = rng.Next(skyboxMats.Count);
         UnityEngine.Debug.LogWarning("Skybox name: " + skyboxMats[idx5].name);
@@ -348,9 +373,9 @@ namespace CoolerStages
         {
 
           int idx = rng.Next(themeMaterials1.Count);
-          Material[] themeMaterials = themeMaterials1[idx];
+          Material[] themeMaterials = themeMaterials1[0];
           int idx2 = rng.Next(themeMaterials2.Count);
-          Material[] themeMaterialsAlt = themeMaterials2[idx2];
+          Material[] themeMaterialsAlt = themeMaterials2[0];
 
           Material testTerrainMat = themeMaterials[0];
           Material testDetailMat = themeMaterials[1];
@@ -629,8 +654,39 @@ namespace CoolerStages
 
     private static void LoadAssets()
     {
-      // Example for how to properly load in assets to be used later
-      // AssetAsyncReferenceManager<Material>.LoadAsset(new AssetReferenceT<Material>(RoR2BepInExPack.GameAssetPaths.RoR2_Base_moon.matMoonTerrain_mat)).Completed += (x) => variableName = x.Result;
+      AssetReferenceT<Material> matRef = new AssetReferenceT<Material>(RoR2BepInExPack.GameAssetPaths.Version_1_35_0.RoR2_DLC2_meridian_Assets.matPMTerrainPlayZone_mat);
+      AssetAsyncReferenceManager<Material>.LoadAsset(matRef).Completed += (x) => terrainMatTesting = x.Result;
+
+      AssetReferenceT<Material> mat2Ref = new AssetReferenceT<Material>(RoR2BepInExPack.GameAssetPaths.Version_1_35_0.RoR2_DLC2_meridian_Assets.matPMGold_mat);
+      AssetAsyncReferenceManager<Material>.LoadAsset(mat2Ref).Completed += (x) => detailMatTesting = x.Result;
+
+      AssetReferenceT<Material> mat3Ref = new AssetReferenceT<Material>(RoR2BepInExPack.GameAssetPaths.Version_1_35_0.RoR2_DLC2_meridian_Assets.matPMTerrainPlayZoneWall_mat);
+      AssetAsyncReferenceManager<Material>.LoadAsset(mat3Ref).Completed += (x) => detailMat2Testing = x.Result;
+
+      AssetReferenceT<Material> mat4Ref = new AssetReferenceT<Material>(RoR2BepInExPack.GameAssetPaths.Version_1_35_0.RoR2_DLC2_meridian_Assets.matPMTerrainPlayZoneDark_mat);
+      AssetAsyncReferenceManager<Material>.LoadAsset(mat4Ref).Completed += (x) => detailMat3Testing = x.Result;
+      // Iron Alluvium matIADrillMachineLowEm matIAIron matIAProps matIAPipes matIATerrain
+      // texIALandscapeWallDiffuse _RedChannelSideTex
+      // _GreenChannelTex texRCConcreteTopDiffuse
+      // Repurposed Crater matRCMetalTrim01 matRCPipes03
+      // Pretender's Presipice matPPCablesEmissive matPPShipDebrisSnow matPPSolusSpheresPanels matPPTerrain matPPTree
+      // Conduit Canyon matCCTerrain_REDROCK matCCMetal
+      // Solutional Haunt matSHTerrain matSHMetal01A matSHMetalTEMP matSHMetal matSHConcreteWall matSHConcreteFloor
+      // Computational Exchange matCEVoxelPath matCEVoxelObject 
+      // Prime Meridian matPMTerrainPlayZone matPMTerrainPlayZoneWall matPMGold matPMTerrainPlayZoneDark
+      /*
+      AssetReferenceT<Material> matRef = new AssetReferenceT<Material>(RoR2BepInExPack.GameAssetPaths.Version_1_35_0.RoR2_DLC3_conduitcanyon.matCCTerrain_mat);
+      AssetAsyncReferenceManager<Material>.LoadAsset(matRef).Completed += (x) => terrainMatTesting = x.Result;
+
+      AssetReferenceT<Material> mat2Ref = new AssetReferenceT<Material>(RoR2BepInExPack.GameAssetPaths.Version_1_35_0.RoR2_DLC3_ironalluvium.matIAIron_mat);
+      AssetAsyncReferenceManager<Material>.LoadAsset(mat2Ref).Completed += (x) => detailMatTesting = x.Result;
+     
+      AssetReferenceT<Material> mat2Ref = new AssetReferenceT<Material>(RoR2BepInExPack.GameAssetPaths.Version_1_35_0.RoR2_DLC3_computationalexchange.matCEVoxelObject_mat);
+      AssetAsyncReferenceManager<Material>.LoadAsset(mat2Ref).Completed += (x) => detailMatTesting = x.Result;
+
+      AssetReferenceT<Material> mat4Ref = new AssetReferenceT<Material>(RoR2BepInExPack.GameAssetPaths.Version_1_35_0.RoR2_DLC3_nest.matPPCablesEmissive_mat);
+      AssetAsyncReferenceManager<Material>.LoadAsset(mat4Ref).Completed += (x) => detailMat3Testing = x.Result;
+      */
     }
 
     /*
